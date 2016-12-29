@@ -34,8 +34,10 @@
 -define(HWCLOCK_STOP, 4).
 
 
--spec open(non_neg_integer(),non_neg_integer()) -> port().
-open(BPM, NTicks) ->
+-spec open(non_neg_integer(),byte()) -> port().
+open(BPM, NTicks) when
+      NTicks > 0,
+      NTicks < 255->
     Fdlink = "fdlink_" ++ ?MODULE_STRING,
     Exec = case code:priv_dir(?MODULE) of
         {error, bad_name} ->
