@@ -26,7 +26,8 @@ typedef struct {
   snd_seq_t *seq_handle;  
 } state_t;
 
-
+snd_seq_tick_time_t get_tick(state_t *st);
+void set_tempo(state_t *st, int bpm);
 
 snd_seq_tick_time_t 
 get_tick(state_t* st) {
