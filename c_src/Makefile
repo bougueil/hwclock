@@ -12,8 +12,6 @@ ERL_INTERFACE_LIB_DIR ?= $(shell erl -noshell -s init stop -eval "io:format(\"~s
 
 C_SRC_DIR = $(CURDIR)
 C_SRC_OUTPUT ?= $(CURDIR)/../priv/fdlink_$(PROJECT)
-#C_SRC_OUTPUT ?= $(CURDIR)/../priv/$(PROJECT).so
-# System type and C compiler/flags.
 
 UNAME_SYS := $(shell uname -s)
 ifeq ($(UNAME_SYS), Darwin)
@@ -34,7 +32,7 @@ endif
 CFLAGS += -fPIC -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR)
 CXXFLAGS += -fPIC -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR)
 
-LDLIBS += -L $(ERL_INTERFACE_LIB_DIR) -lerl_interface -lei
+LDLIBS += -L $(ERL_INTERFACE_LIB_DIR) -lei
 LDFLAGS += -lasound
 
 # Verbosity.
