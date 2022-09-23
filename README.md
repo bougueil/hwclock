@@ -33,12 +33,12 @@ iex> :hwclock_bench.start()
 Api usage :
 
 ```elixir
-iex> port = :hwclock::hwclock.open 60, 128
+iex> port = :hwclock.open 60, 128
 iex> flush
 # get real time clock data from libasound
 {#Port<0.8>, {:data, <<0, 50, ...>>}}
 {#Port<0.8>, {:data, <<0, 50, ...>>}}
 ...
-iex> :hwclock::hwclock.stop port
+iex> :hwclock.stop port
 true
 ```
