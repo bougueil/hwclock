@@ -34,22 +34,24 @@
 -define(HWCLOCK_STOP, 4).
 
 
--spec open(non_neg_integer(),byte()) -> port().
+-spec open(byte(),byte()) -> port().
 open(BPM, NTicks) when
-      NTicks > 0,
-      NTicks < 255->
+      NTicks >= 0,
+      NTicks < 256,
+      BPM >= 0,
+      BPM < 256->
     Fdlink = "fdlink_" ++ ?MODULE_STRING,
     Exec = case code:priv_dir(?MODULE) of
-        {error, bad_name} ->
-            case code:which(?MODULE) of
-                Filename when is_list(Filename) ->
-                    filename:join([filename:dirname(Filename),"../priv", Fdlink]);
-                _ ->
-                    filename:join("../priv", Fdlink)
-            end;
-        Dir ->
-            filename:join(Dir, Fdlink)
-    end,
+	       {error, bad_name} ->
+		   case code:which(?MODULE) of
+		       Filename when is_list(Filename) ->
+			   filename:join([filename:dirname(Filename),"../priv", Fdlink]);
+		       _ ->
+			   filename:join("../priv", Fdlink)
+		   end;
+	       Dir ->
+		   filename:join(Dir, Fdlink)
+	   end,
     Port = open_port( {spawn, Exec}, [{packet, 2}, binary, exit_status]),
     port_command(Port, [3, BPM, NTicks]),
     receive 
@@ -61,8 +63,8 @@ open(BPM, NTicks) when
 
 -spec stop(port()) -> true.
 stop(Port) ->	   
-     port_command(Port, [?HWCLOCK_STOP]).
-   
+    port_command(Port, [?HWCLOCK_STOP]).
+
 -spec get_tick(binary()) -> non_neg_integer().
 get_tick(Opaque) ->   
     <<0,50,Tick:32>> = Opaque,
