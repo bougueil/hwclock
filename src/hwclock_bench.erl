@@ -63,5 +63,5 @@ loop_bench(S)  ->
 
 	Tellme ->
 	    io:format("abort on event ~w  ~n", [Tellme]),
-	    hwclock:stop(S#state.timer);
+	    hwclock:stop(S#state.timer)
     end.
