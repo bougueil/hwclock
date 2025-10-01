@@ -16,11 +16,10 @@
     timer :: port(),
     bpm :: byte(),
     start_us :: term(),
-    hwclock_every_ms :: integer(),
-    iter :: integer()
+    hwclock_every_ms :: integer()
 }).
 
--spec start() -> true.
+-spec start() -> no_return().
 start() ->
     %% between 1..255, 60 means 60 beats per minute
     BPM = 60,
@@ -48,10 +47,10 @@ start() ->
 
 loop_bench(S) ->
     receive
-        {_Port, {data, _Opaque}} ->
-            %% Tick = hwclock:get_tick(Opaque),
-            %% ElapsedMs = hwclock:get_tick_ms(S#state.bpm, Opaque),
-            %% io:format("hw new data, tick number: ~p, ticks_ms: ~p ms.~n", [Tick, ElapsedMs]),
+        {_Port, {data, Opaque}} ->
+            Tick = hwclock:get_tick(Opaque),
+            ElapsedMs = hwclock:get_tick_ms(S#state.bpm, Opaque),
+            io:format("\rhw new data, tick number: ~p, ticks_ms: ~p ms.", [Tick, ElapsedMs]),
             Cumul = S#state.hw_clock_cumul,
             loop_bench(S#state{hw_clock_cumul = Cumul + 1});
         {timeout, _, erlang_timer} ->
@@ -62,7 +61,7 @@ loop_bench(S) ->
             erlang:start_timer(?REFRESH_SCREEN, self(), stat_collect),
             Elapsed_us = timer:now_diff(os:timestamp(), S#state.start_us),
             io:format(
-                "stats after ~p us.\taccumulated events erlang:~p, hwclock:~p\tdrift us. erl versus hwclock: ~p~n",
+                "\rstats after ~p us.\taccumulated events erlang:~p, hwclock:~p\tdrift us. erl versus hwclock: ~p~n",
                 [
                     Elapsed_us,
                     S#state.e_clock_cumul,
