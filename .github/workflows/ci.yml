@@ -1,10 +1,6 @@
 name: HWclock CI
 
-on:
-  pull_request:
-  push:
-    branches:
-      - main
+on: [pull_request, push]
 
 jobs:
   linux:
@@ -13,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        otp_version: [25, 26, 27, 28]
+        otp_version: [25, 28]
         os: [ubuntu-latest]
 
     container:
