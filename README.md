@@ -1,5 +1,7 @@
 hwclock
 =====
+[![CI](https://github.com/bougueil/hwclock/actions/workflows/ci.yml/badge.svg)](https://github.com/bougueil/hwclock/actions/workflows/ci.yml)
+
 
 A real-time OTP library relying on libasound
 
