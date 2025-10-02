@@ -19,6 +19,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     - name: Install libasound
-      run: sudo apt install -y libasound2-dev
+      run: apt install -y libasound2-dev
     - name: CI tests
       run: make ci
