@@ -8,24 +8,24 @@
 -define(REFRESH_SCREEN, timer:seconds(10)).
 -define(GAME_OVER, 60 * ?REFRESH_SCREEN).
 %% ms.
--define(E_TIMER, 100).
+-define(E_TIMER, 10).
 
 -record(state, {
     e_clock_cumul :: integer(),
     hw_clock_cumul :: integer(),
     timer :: port(),
     bpm :: byte(),
+    ppq :: integer(),
     start_us :: term(),
-    hwclock_every_ms :: integer()
+    hwclock_every_ms :: float()
 }).
 
 -spec start() -> no_return().
 start() ->
-    %% between 1..255, 60 means 60 beats per minute
+    %% receive an hwclock event every 1 second.
     BPM = 60,
-    %% between 1..255, nticks = 128 with bpm = 60 ensures we receive an hwclock event every 1 second
     NTicks = 128,
-    HWCLOCK_interval_ms = 1000 * 60 * NTicks div BPM div 128,
+    HWCLOCK_interval_ms = 1000 * 60 / BPM * NTicks / 128,
 
     io:format(
         "~nhwclock:open(_BPM=~p, _NTicks=~p)~nevents scheduled every - erlang:~p ms, hwclock:~p ms~nstats are reported every ~p ms.~n",
@@ -49,19 +49,19 @@ loop_bench(S) ->
     receive
         {_Port, {data, Opaque}} ->
             Tick = hwclock:get_tick(Opaque),
-            ElapsedMs = hwclock:get_tick_ms(S#state.bpm, Opaque),
-            io:format("\rhw new data, tick number: ~p, ticks_ms: ~p ms.", [Tick, ElapsedMs]),
+            {Tick, Elapsed_s} = hwclock:get_tick_s(Opaque, S#state.bpm, 128),
+            io:format("\r\thw clock tick number: ~p, ticks in s.: ~p s.", [Tick, Elapsed_s]),
             Cumul = S#state.hw_clock_cumul,
             loop_bench(S#state{hw_clock_cumul = Cumul + 1});
         {timeout, _, erlang_timer} ->
             erlang:start_timer(?E_TIMER, self(), erlang_timer),
-            Cumul = S#state.e_clock_cumul,
-            loop_bench(S#state{e_clock_cumul = Cumul + 1});
+            Cumul = S#state.e_clock_cumul + 1,
+            loop_bench(S#state{e_clock_cumul = Cumul});
         {timeout, _, stat_collect} ->
             erlang:start_timer(?REFRESH_SCREEN, self(), stat_collect),
             Elapsed_us = timer:now_diff(os:timestamp(), S#state.start_us),
             io:format(
-                "\rstats after ~p us.\taccumulated events erlang:~p, hwclock:~p\tdrift us. erl versus hwclock: ~p~n",
+                "\rstats after ~p us.\taccumulated erlang events:~p, hwclock:~p\tdrift us. erl versus hwclock: ~p~n",
                 [
                     Elapsed_us,
                     S#state.e_clock_cumul,
