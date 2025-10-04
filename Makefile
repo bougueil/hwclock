@@ -15,8 +15,8 @@ clean:
 clean-all: clean
 	rm -rf _build
 
-# test:
-# 	$(REBAR3) do eunit
+test:
+	$(REBAR3) do eunit
 # 	$(REBAR3) do ct
 
 xref:
@@ -27,3 +27,6 @@ doc:
 
 dialyzer: compile
 	$(REBAR3) dialyzer
+
+bench: compile
+	 erl -noshell -pa _build/default/lib/hwclock/ebin -s hwclock_bench | tee output_eee.dat
