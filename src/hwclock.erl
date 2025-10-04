@@ -21,12 +21,6 @@
     stop/1
 ]).
 
-%% To help with testing internal functions
--ifdef(TEST).
--include_lib("eunit/include/eunit.hrl").
--compile([export_all]).
--endif.
-
 -define(HWCLOCK_START, 3).
 -define(HWCLOCK_STOP, 4).
 
