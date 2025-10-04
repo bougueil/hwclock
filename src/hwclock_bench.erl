@@ -15,7 +15,6 @@
     hw_clock_cumul :: integer(),
     timer :: port(),
     bpm :: byte(),
-    ppq :: integer(),
     start_us :: term(),
     hwclock_every_ms :: float()
 }).
@@ -31,7 +30,10 @@ start() ->
         "~nhwclock:open(_BPM=~p, _NTicks=~p)~nevents scheduled every - erlang:~p ms, hwclock:~p ms~nstats are reported every ~p ms.~n",
         [BPM, NTicks, ?E_TIMER, HWCLOCK_interval_ms, ?REFRESH_SCREEN]
     ),
-    Port = hwclock:open(BPM, NTicks),
+    Port0 = hwclock:open(BPM, NTicks),
+    % to please Xref
+    true = hwclock:stop(Port0),
+    Port = hwclock:open(BPM, NTicks, 128),
     Now = os:timestamp(),
     erlang:start_timer(?E_TIMER, self(), erlang_timer),
     erlang:start_timer(?REFRESH_SCREEN, self(), stat_collect),
