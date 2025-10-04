@@ -22,8 +22,8 @@
     puts("ERROR: " #msg);                                                      \
     exit(1);                                                                   \
   }
-#define TICKS_PER_QUARTER 128
-#define PORT 128
+#define HWCLOCK_START  3
+#define HWCLOCK_STOP  4
 
 typedef struct {
   int queue_id, port_in_id, tempo, NticksPerMeasure;
@@ -31,7 +31,8 @@ typedef struct {
 } state_t;
 
 snd_seq_tick_time_t get_tick(state_t *st);
-void set_tempo(state_t *st, int bpm);
+
+void set_tempo(state_t *st, int bpm, int ppq);
 
 snd_seq_tick_time_t get_tick(state_t *st) {
   snd_seq_queue_status_t *status;
@@ -54,9 +55,9 @@ static void open_seq(state_t *st) {
   }
 
   if ((st->port_in_id = snd_seq_create_simple_port(
-           st->seq_handle, "Ursus-80",
-           SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE,
-           SND_SEQ_PORT_TYPE_APPLICATION)) < 0) {
+                          st->seq_handle, "Ursus-80",
+                          SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE,
+                          SND_SEQ_PORT_TYPE_APPLICATION)) < 0) {
     fprintf(stderr, "Error creating sequencer port.\n");
     exit(1);
   }
@@ -75,19 +76,18 @@ static void clear_queue(state_t *st) {
   snd_seq_remove_events_malloc(&remove_ev);
   snd_seq_remove_events_set_queue(remove_ev, st->queue_id);
   snd_seq_remove_events_set_condition(remove_ev, SND_SEQ_REMOVE_OUTPUT |
-                                                     SND_SEQ_REMOVE_IGNORE_OFF);
+                                      SND_SEQ_REMOVE_IGNORE_OFF);
   snd_seq_remove_events(st->seq_handle, remove_ev);
   snd_seq_remove_events_free(remove_ev);
 }
 
-void set_tempo(state_t *st, int bpm) {
+void set_tempo(state_t *st, int bpm, int ppq) {
   snd_seq_queue_tempo_t *queue_tempo;
 
   snd_seq_queue_tempo_malloc(&queue_tempo);
-  st->tempo = (int)(6e7 / ((double)bpm * (double)TICKS_PER_QUARTER) *
-                    (double)TICKS_PER_QUARTER);
+  st->tempo = (int)(6e7 / (double)bpm );
   snd_seq_queue_tempo_set_tempo(queue_tempo, st->tempo);
-  snd_seq_queue_tempo_set_ppq(queue_tempo, TICKS_PER_QUARTER);
+  snd_seq_queue_tempo_set_ppq(queue_tempo, ppq);
   snd_seq_set_queue_tempo(st->seq_handle, st->queue_id, queue_tempo);
   snd_seq_queue_tempo_free(queue_tempo);
 }
@@ -113,7 +113,7 @@ static void notify_erlang_midi_event_type(int type, int tick) {
   }
 }
 
-static int erlang_cmd(state_t *st, snd_seq_tick_time_t tick) {
+static int erlang_cmd(state_t *st, snd_seq_tick_time_t tick, int ppq) {
   int result = -1;
   byte buff[8];
 
@@ -121,14 +121,13 @@ static int erlang_cmd(state_t *st, snd_seq_tick_time_t tick) {
     return -1;
 
   switch (buff[0]) {
-  case 3:
-    /* fprintf(stderr,"start seq %i %i\r\n",buff[1], buff[2]); */
-    set_tempo(st, buff[1]);
-    st->NticksPerMeasure = buff[2];
+  case HWCLOCK_START:
+    set_tempo(st, buff[2], ppq);
+    st->NticksPerMeasure = buff[3];
     start_seq_echo(st, tick);
     result = 0;
     break;
-  case 4:
+  case HWCLOCK_STOP:
     result = -1;
     break;
   default:
@@ -175,11 +174,12 @@ int main(int argc, char *argv[]) {
   int npfd = 0;
   struct pollfd *pfd;
   state_t st;
+  int ppq = atoi(argv[1]);
 
   open_seq(&st);
 
   init_queue(&st);
-  set_tempo(&st, 10);
+  set_tempo(&st, 10, ppq);
   snd_seq_start_queue(st.seq_handle, st.queue_id, NULL);
   snd_seq_drain_output(st.seq_handle);
   npfd = snd_seq_poll_descriptors_count(st.seq_handle, POLLIN) + 1;
@@ -198,7 +198,7 @@ int main(int argc, char *argv[]) {
         }
       }
       if (pfd[npfd - 1].revents > 0) {
-        if (erlang_cmd(&st, tick) < 0) {
+        if (erlang_cmd(&st, tick, ppq) < 0) {
           break;
         }
       }
