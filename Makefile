@@ -2,7 +2,7 @@
 
 REBAR3 ?= rebar3
 
-all: compile xref test
+all: compile format xref test
 
 ci: compile xref dialyzer test
 
@@ -23,7 +23,10 @@ xref:
 	$(REBAR3) xref
 
 doc:
-	$(REBAR3) as docs do edoc
+	$(REBAR3) ex_doc
+
+format:
+	$(REBAR3) format
 
 dialyzer: compile
 	$(REBAR3) dialyzer

@@ -128,6 +128,7 @@ static int erlang_cmd(state_t *st, snd_seq_tick_time_t tick, int ppq) {
     result = 0;
     break;
   case HWCLOCK_STOP:
+    snd_seq_close (st->seq_handle);
     result = -1;
     break;
   default:
