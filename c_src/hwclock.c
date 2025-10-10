@@ -17,11 +17,6 @@
 
 #include "erl_comm.h"
 
-#define CHK(stmt, msg)                                                         \
-  if ((stmt) < 0) {                                                            \
-    puts("ERROR: " #msg);                                                      \
-    exit(1);                                                                   \
-  }
 #define HWCLOCK_START  3
 #define HWCLOCK_STOP  4
 
