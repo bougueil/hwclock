@@ -3,7 +3,7 @@ hwclock
 [![CI](https://github.com/bougueil/hwclock/actions/workflows/ci.yml/badge.svg)](https://github.com/bougueil/hwclock/actions/workflows/ci.yml)
 
 
-A real-time OTP library relying on libasound.
+A real-time OTP NIF relying on libasound.
 
 `hwclock` is capable of emitting hardware events at a few kHz.
 
@@ -38,12 +38,11 @@ iex> :hwclock_bench.start()
 Api usage :
 
 ```elixir
-iex> port = :hwclock.open 60, 128
+iex> _pid = :hwclock.open_notify 60, 128, self()
 iex> flush
 # get real time clock data from libasound
-{#Port<0.8>, {:data, <<0, 50, ...>>}}
-{#Port<0.8>, {:data, <<0, 50, ...>>}}
+{:hwclock, 0}
+{:hwclock, 128}
 ...
-iex> :hwclock.stop port
-true
+
 ```

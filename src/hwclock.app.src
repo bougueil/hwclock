@@ -1,7 +1,7 @@
 {application,
  hwclock,
  [{description, "A real-time OTP library relying on libasound"},
-  {vsn, "0.1.0"},
+  {vsn, "0.9.0"},
   {registered, []},
   {applications, [kernel, stdlib]},
   {env, []},
