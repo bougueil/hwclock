@@ -1,16 +1,19 @@
 -module(hwclock_bench).
 
--ignore_xref([start/0]).
-
 -export([start/0]).
 
-%%--------------------------------------------------------
-%% Example of using hwclock:open_notify.
-%%
-%% erl -noshell -pa _build/default/lib/hwclock/ebin -s hwclock_bench | tee output_eee.dat
+-moduledoc """
+Example of use without gen_server.
+
+```bash
+erl -noshell -pa _build/default/lib/hwclock/ebin -s hwclock_bench | tee output_eee.dat
+```
+""".
+
+-ignore_xref([start/0]).
+
 -define(REFRESH_SCREEN_ms, timer:seconds(10)).
 -define(GAME_OVER_ms, 61 * ?REFRESH_SCREEN_ms).
-%% ms.
 -define(E_TIMER_ms, 10).
 
 -record(state,
@@ -25,7 +28,6 @@
 start() ->
     %% receive an hwclock event every 1/10 s., same E_TIMER_ms.
     % formula: 60 / BPM * NTICKS / 128 * 128 / PPQ = 60/BPM*NTICKS/PPQ.
-    %% 10 ms.
     BPM = 60,
     NTICKS = 1,
     PPQ = 100,
