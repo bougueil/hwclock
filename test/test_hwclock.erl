@@ -7,6 +7,7 @@
 -define(HWCLOCK_interval_s, 60 / ?BPM * ?NTICKS / 128).
 -define(PPQ, 1024).
 -define(HWCLOCK_interval_with_ppq_s, 60 / ?BPM * ?NTICKS / 128 * 128 / ?PPQ).
+-define(CHANNEL, "test_channel").
 
 read_Tick(Hdl) ->
     ok = hwclock:select(Hdl, self()),
@@ -109,9 +110,10 @@ open_select_close_test() ->
     Result2 = hwclock:close(Hdl2),
     ?assert(Result2 =:= ok).
 
-open_notify_test() ->
-    Pid = hwclock:open_notify(?BPM, ?NTICKS, ?PPQ, self()),
-    ?assert(is_pid(Pid) =:= true),
+open_with_pubsub_test() ->
+    application:ensure_all_started(hwclock),
+    hwclock:subscribe_pubsub(?CHANNEL),
+    Pid = hwclock:open_with_pubsub(?BPM, ?NTICKS, ?PPQ, ?CHANNEL),
     Result =
         [receive
              {hwclock, Ev} ->
@@ -179,30 +181,30 @@ open_bad_arg3_test() ->
         end,
     ?assert(Result =:= badarg).
 
-open_notify_bad_arg1_test() ->
+open_with_pubsub_bad_arg1_test() ->
     Result =
         try
-            hwclock:open_notify(256, ?NTICKS, self())
+            hwclock:open_with_pubsub(256, ?NTICKS, self())
         catch
             error:Error ->
                 Error
         end,
     ?assert(Result =:= function_clause).
 
-open_notify_bad_arg2_test() ->
+open_with_pubsub_bad_arg2_test() ->
     Result =
         try
-            hwclock:open_notify(?BPM, 256, self())
+            hwclock:open_with_pubsub(?BPM, 256, self())
         catch
             error:Error ->
                 Error
         end,
     ?assert(Result =:= function_clause).
 
-open_notify_bad_arg3_test() ->
+open_with_pubsub_bad_arg3_test() ->
     Result =
         try
-            hwclock:open_notify(?BPM, ?NTICKS, 1025, self())
+            hwclock:open_with_pubsub(?BPM, ?NTICKS, 1025, self())
         catch
             error:Error ->
                 Error

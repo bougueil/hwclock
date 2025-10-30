@@ -12,8 +12,8 @@ Build (Linux)
 
     $ sudo apt-get install libasound2-dev 
     $ make
-    # evaluate drift of erlang events with :
-    $ erl -noshell -pa _build/default/lib/hwclock/ebin -s hwclock_bench | tee output_eee.dat
+    # evaluate erlang events drift against hwclock with :
+    $ rebar3 shell --eval "hwclock_bench:start()."
 
 
 ## Installation with Elixir
@@ -31,18 +31,43 @@ end
 Next, run `mix deps.get` in your shell to fetch and compile `hwclock`. Start an
 interactive Elixir shell with `iex -S mix`:
 
-```elixir
-iex> :hwclock_bench.start()
+```bash
+rebar3 shell --eval "hwclock_bench:start()."
 ```
 
 Api usage :
 
-```elixir
-iex> _pid = :hwclock.open_notify 60, 128, self()
-iex> flush
-# get real time clock data from libasound
-{:hwclock, 0}
-{:hwclock, 128}
-...
+<!-- tabs-open -->
 
+### Erlang
+
+```erlang
+%% inside rebar3 shell
+> hwclock:subscribe_pubsub("my_channel").
+> hwclock:open_with_pubsub(60, 128, "my_channel").
+> process_info(self(), messages).
+{messages,[{hwclock,0},
+           {hwclock,128},
+           {hwclock,256},
+           {hwclock,384},
+           {hwclock,512}]}
 ```
+
+### Elixir
+
+```elixir
+# inside iex -S mix
+iex> :hwclock.subscribe_pubsub "my_channel"
+iex> :hwclock.open_with_pubsub 60, 128, "my_channel"
+iex> Process.info self(), :messages
+{:messages,
+ [
+   hwclock: 0,
+   hwclock: 128,
+   hwclock: 256
+ ]}
+
+...
+```
+
+<!-- tabs-close -->

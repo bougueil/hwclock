@@ -3,6 +3,7 @@
  [{description, "A real-time OTP library relying on libasound"},
   {vsn, "0.9.0"},
   {registered, []},
+  {mod, {hwclock_app, []}},
   {applications, [kernel, stdlib]},
   {env, []},
   {modules, []},
